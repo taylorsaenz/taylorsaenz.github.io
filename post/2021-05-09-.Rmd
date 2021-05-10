@@ -1,0 +1,17 @@
+---
+title: ''
+author: ''
+date: '2021-05-09'
+slug: ''
+categories: []
+tags: []
+description: ''
+---
+![](/post/2021-05-09-_files/Screen Shot 2021-04-14 at 11.49.41 PM.png)
+
+
+```{python}
+hw = "hello world"
+hw[0:11]
+```
+
