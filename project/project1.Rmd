@@ -1,0 +1,105 @@
+---
+title: "Project 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+
+*The dataset crime.us was found first through R datasets, and it became extremely interesting to me because I have always been interested in crime and crime rates. This dataset contains data from each state in the US and details their total violent crimes as well as the number of individual crimes, such as rape, murder, burglary, robbery, and assualt. I thought it would be interesting to compare these statistics to average income by state. Many people believe that lower income areas are more inclined to have higher instances of crime, so I believed this would be a good way of finding out if that is true. The dataset us_rent_income, obtained from R datasets, contains the average rent and income that a person pays and get paid in each state. It would make sense for instances of burglary tobe higher in low income states since people may feel the need to steal more if they cannot afford necessities. Otherwise, I would not expect any strong correlation between crime and income.*
+
+```{R}
+install.packages("VGAMdata",repos = "http://cran.us.r-project.org")
+library(VGAMdata)
+library(tidyverse)
+library(dplyr)
+```
+
+```{R}
+income <- us_rent_income %>% pivot_wider(names_from="variable", values_from="estimate") %>% filter(!is.na(income)) %>% mutate(new_name = str_replace(NAME, " ", "_")) %>% select(c(-moe, -NAME))
+```
+
+*First, I pivoted wider in order to make income and rent their own column, so each each vaule would line up by state. This created many NA's since there were no rent values for income, and no income values for rent. Since I wanted to focus on income, I filtered out the NA's on the income column. Following this, I wanted to join with crime.us by state, however states with 2 names, such as New York, contained an "_" in the crime.us dataset, so I had to mutate a new column to include "_" in order for states to be renamed (eg. New_York). Lastly, I renamed the dataset "income" so it was easier to read.*
+
+```{R}
+crime_join <- crime.us %>% left_join(income, by=c("State"="new_name"))
+crime<- crime_join %>% select(-c(10:23, 8, 25))
+
+write.csv(crime, "~/data.csv")
+data <- read.csv("data.csv")
+```
+
+*I did a left join by state using the datasets crime.us and income. Since the column names were different, I had to equal State to new_name to ensure they joined correctly. Many columns were deleted, such as rent from the income dataset, and any crime rate column from the crime.us. dataset. I wanted the number of crimes, rather than the crime rate in order to visualize it with the population. The only column I kept from the income dataset was state and income, and all individual crimes were kept on the crime.us dataset.*
+
+```{R}
+crime %>% arrange(desc(ViolentCrimeTotal))
+crime %>% filter(income==max(income)) %>% select(State)
+crime %>% mutate(CrimeRate=Population/ViolentCrimeTotal)
+
+Catergorial <- crime%>%mutate(ViolentCrimeTotal_cat = case_when(ViolentCrimeTotal>20000 ~ "high",
+ViolentCrimeTotal<20000 & 10000 ~ "med",
+ViolentCrimeTotal<1000 ~ "low"))
+
+Catergorial %>% group_by(ViolentCrimeTotal_cat) %>% summarize(mean=mean(income), sd=sd(income), count=n(), se=sd/sqrt(count), max=max(income, na.rm = T))
+
+Catergorial %>% group_by(ViolentCrimeTotal_cat) %>% summarize(mean=mean(Burglary), sd=sd(Burglary), count=n(), se=sd/sqrt(count), max=max(income, na.rm = T))
+
+Catergorial %>% group_by(ViolentCrimeTotal_cat) %>% summarize(mean=mean(Assault), sd=sd(Burglary), count=n(), se=sd/sqrt(Assault), max=max(Assault, na.rm = T))
+
+crime %>% summarize(mean=mean(Rape), sd=sd(Rape), count=n(), se=sd/sqrt(Rape), max=max(Rape))
+
+crime %>% summarize(mean=mean(Robbery), sd=sd(Robbery), count=n(), se=sd/sqrt(Robbery), max=max(Murder, na.rm = T))
+
+crime %>% summarize(mean=mean(Murder), sd=sd(Murder), count=n(), se=sd/sqrt(Murder), max=max(Murder, na.rm = T))
+
+crime %>% summarize(mean=mean(Population), sd=sd(Population), count=n(), se=sd/sqrt(Population), max=max(Population, na.rm = T))
+
+```
+
+*I first arranged by descending incomes to see the state with the highest violent crime rate, but also filtered by income and selected state in order to see the state with the highest income. These states did not add up, which was not that surprising to me. I also mutated a crime rate column in order to see the percentage of crime when it includes population. This gives better insight to the amount of crime per state given how many people are in the state.*
+*Next, I had to create a categorical variable that I could group by, I used case_when to create a variable that assigned each state as high, medium, or low depending on the amount of violent crimes committed. Now, it was possible to group by this catergorial variable to see the summary statistics of different ranges of crime. In terms of income, the mean income was less than a thousand dollar difference between high and medium crime areas. This is an indication that income does not play a huge role in the amount of crime in a state. Looking at burglary, the mean was significantly higher in high crime areas, which makes sense since burgaraly is one of the crimes listed. None of the other variable were too surprising since summarize was used to find 5 summary statistics for each numerical variable. It was interesting to see different numbers of crimes, such as murders being much lower than other crimes.*
+
+```{R}
+cormat <- crime %>% select_if(is.numeric) %>% cor(use="pair")
+tidycor <- cormat %>% as.data.frame %>% rownames_to_column("var1") %>%
+pivot_longer(-1,names_to="var2",values_to="correlation")
+
+tidycor%>%ggplot(aes(var1,var2,fill=correlation))+
+geom_tile()+
+scale_fill_gradient2(low="red",mid="white",high="blue")+ 
+geom_text(aes(label=round(correlation,2)),color = "black", size = 4)+ 
+theme(axis.text.x = element_text(angle = 90, hjust=1))+ 
+coord_fixed()
+
+ggplot(crime, aes(State, ViolentCrimeTotal)) +geom_bar(stat="summary", width = .5, aes(fill = income)) + geom_errorbar(stat="summary")+ xlab('State') + ylab('ViolentCrime') + ggtitle("State Crime Total") + scale_y_continuous() + theme(axis.text.x = element_text(angle=90, hjust=1)) 
+
+ggplot(crime) + geom_point(size=2, aes(x = State, y = income, color = Burglary)) + theme(axis.text.x = element_text(angle=90, hjust=1)) + scale_color_gradient(low="blue", high="red")
+
+```
+
+*For the correlation heat map, it is apparent that violent crime total and each individual crime had an extremely high positive correlations, which makes sense since a crime is being committed. The higher the individual crime, the higher the total crime. However, there is no strong correlation with any form of crime and income. This shows that income does not affect the amount of crime committed. The highest correlation from this group was burglary and income, with a negative correlation of -0.17. This means that income has the greatest impact on burglary, out of all crimes, which I had predicted.*
+*The first bar plot shows state and violent crime rate plotted against each other, colored by income. It shows California having the largest number of violent crimes, which makes sense because it is the state with the largest population. This made it possible to visualize the lack of correlation between income and violent crime. If lower income influenced violent crime, the dark blue shading would be more prominent in higher bars, but that is not the case. Light blue and dark blue bars are spread throughout the graph. The second scatterplot shows state and income plotted against each other, colored by burglary in order to see if burglary is influenced by income at all. As expected, there is no correlation or pattern between state and income since every state is different, and there appears to be no pattern in the amount of burglaries by income. If there were a strong correlation, the darker blues and purples would all be scattered toward the bottom of the plot since that indicated lower income, but that is not the case. High instances of burgaries occur at all incomes.*
+
+```{R}
+library(cluster)
+pam_dat<-crime%>% select(ViolentCrimeTotal,income,Burglary)
+sil_width<-vector()
+for(i in 2:10){
+pam_fit <- pam(pam_dat, k = i)
+sil_width[i] <- pam_fit$silinfo$avg.width}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+
+crime%>%select(ViolentCrimeTotal, income, Burglary) %>% scale %>% pam(3)
+crime_clust <- crime%>%select(ViolentCrimeTotal, income, Burglary) %>% scale %>% pam(3)
+pamclust<-crime %>% mutate(cluster=as.factor(crime_clust$clustering))
+pamclust %>% ggplot(aes(ViolentCrimeTotal,income,color=cluster, shape=cluster))+geom_point(size=4)
+
+crime_clust$silinfo$avg.width
+```
+
+*First I picked the number of clusters using a ggplot, and although 2 clusters came out with the highest sil_width, I decided to use 3 clusters in order to get a better visualization, since the score was still high. Next, I performed the cluster, which gave the mediods for each cluster. This was able to be visualized plotting the clusters. Coloring and shaping by cluster allowed for a good representation of where each cluster was. Even though it was clustered by 3 variables, the original 2 variables were the only ones visualized. Again, this showed that there is no noticeable correlation between income and violent crime. Clusters 1 and 2 show no significant difference in violent crime total, although income increases. Cluster 3 shows some outliers in the data that do also not show a certain pattern. Lastly, a goodness of fit score of 0.42 was produced, meaning it was weak.*
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -1,0 +1,263 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+Taylor Saenz
+tas3672
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+*This dataset entitled ‘Salaries’ is named after the column that describes the salaries of various professors. The dataset gives details of each professors rank (ie. professor, assistant professor, and associate professor), as well as their sex. It also details how many years it has been since each professor received their PhD, as well as how many years they have been in service as a professor. There are 397 total observations, meaning there is data on 397 difference professors. This dataset seemed interesting because I was curious to see if sex had any effect on the salary a professor receives. It also interested me to view the importance of rank and years of service on the amount a professor gets paid.*
+
+```{r}
+library(carData)
+library(dplyr)
+
+write.csv(Salaries, "~/Salaries.csv")
+data2 <- read.csv("Salaries.csv")
+
+prof <- manova(cbind(yrs.since.phd, yrs.service) ~ rank, data = Salaries)
+summary(prof)
+summary.aov(prof)
+
+Salaries %>% group_by(rank) %>% summarize(mean(yrs.since.phd), 
+    mean(yrs.service))
+pairwise.t.test(Salaries$yrs.since.phd, Salaries$rank, p.adj = "none")
+pairwise.t.test(Salaries$yrs.service, Salaries$rank, p.adj = "none")
+
+0.05/9
+1 - 0.95^9
+
+```
+
+*A MANOVA test was conducted in order to determine the effect of Professor rank on years since receiving a PhD and years of being in service as a professor. Examining bivariate density plot, there seems to be multivariate normality. Covariance matrices also showed relative homogeneity. No univariate or multivariate outliers were evident. The null hypothesis stating that years since receiving a PhD and years of being in service as a professor was the same across all ranks was rejected since a p value was less tahn 0.05. The ANOVA tests on the 2 variables were significant, and 1 MANOVA, 2 ANOVAs, and 6 t tests were used. The boneferonni adjusted rate that should be used is 0.0056 because there were 9 tests in total, and the overall type I error rate was 0.3697 The post hoc tests showed that all 3 ranks differed significantly from each other since p<0.05.*
+
+```{r}
+female <- c(129000, 137000, 74830, 151768, 74692, 122960, 97032, 73500, 105000, 62884, 103994)
+male <- c(89516, 139750, 147765, 78000, 117150, 102580, 155750, 146500, 93418)
+
+newsalary <- data.frame(sex = c(rep("Female", 11), rep("Male", 
+    9)), salary = c(female, male))
+head(newsalary)
+ 
+newsalary %>% group_by(sex) %>% summarize(means = mean(salary)) %>% 
+    summarize(`mean_diff:` = diff(means))
+
+original <- vector()
+for (i in 1:5000) {
+    new <- data.frame(salary = sample(newsalary$salary), sex = newsalary$sex)
+    original[i] <- mean(new[new$sex == "Female", ]$salary) - 
+        mean(new[new$sex == "Male", ]$salary)
+}
+
+{
+    hist(original)
+    abline(v = c(-18.258, 18.258), col = "red")
+}
+
+mean(original > 15967.46 | original < -15967.46)
+
+new %>% filter(sex == "female")
+
+```
+
+*A randomization test was performed in order to view the mean difference in salary between males and females. The null hypothesis states that mean salary is the same for males vs females, while the alternative hypothesis states that mean salary is different for males vs females. The mean difference is 15967.46, indicating that on average, males earn 15967.46 higher salary than females do. The p value, however, is 0.2412 meaning that the null hypothesis cannot be rejected. There is a 24% chance that in the real world, you will get data that is as extreme as a difference between groups of 15967.46 if the null hypothesis were to be true. For this reason, it can be said the the mean salary for a professor is the same for males and females.*
+
+```{r}
+library(lmtest)
+library(sandwich)
+library(tidyverse)
+library(dplyr)
+
+Salaries$yrs.since.phd_c <- Salaries$yrs.since.phd - mean(Salaries$yrs.since.phd, 
+    na.rm = T)
+Salaries$yrs.service_c <- Salaries$yrs.service - mean(Salaries$yrs.service, 
+    na.rm = T)
+fit1 <- lm(salary ~ yrs.since.phd_c * yrs.service_c, data = Salaries)
+summary(fit1)
+coeftest(fit1)
+
+Salaries %>% ggplot(aes(yrs.service_c, salary)) + geom_point() + 
+    geom_smooth(method = "lm", se = F)
+bptest(fit1)
+
+summary(fit1)$coef[, 1:2]
+coeftest(fit1, vcov = vcovHC(fit1))
+
+```
+
+*The null hypothesis states that years since receiving a PhD and years of service as a professor will not explain variation in salary. Years since receiving a PhD and the interaction between this variable and years of service both showed to have a p value <0.05, indicating that the null hypothesis needs to be rejected. Years since receiving a PhD does explain variation in salary. After accounting for robust standard errors, the results proved to be the same as before. Years since receiving a PhD and the interaction between this variable and years of service both showed to have a p value <0.05, indicating that the null hypothesis needs to be rejected. Looking at the graph created, assumptions of a linear regression can be assessed. It appears that none of the assumptions were met. There is no linear interaction bewtween predictor and response variables, no equal variance of points along the regression line, and no normally distributed residules, according the Breuch-Pagan test.*
+
+```{r}
+fit2 <- lm(salary ~ yrs.since.phd_c * yrs.service_c, data = Salaries)
+summary(fit2)
+coeftest(fit2)
+boot_dat <- sample_frac(Salaries, replace = T)
+samp <- replicate(5000, {
+    boot_dat <- sample_frac(Salaries, replace = T)
+    fit2 <- lm(salary ~ yrs.since.phd_c * yrs.service_c, data = boot_dat)
+    coef(fit2)
+})
+samp %>% t %>% as.data.frame %>% summarize_all(sd)
+```
+
+*After resampling the observations, the SEs stayed increased from the original SEs but decreased from the robust standard errors. Accounting for bootstap standard errors, the SEs decreased from the robust SEs which indicates that there is less variation using bootstrap using bootstrap statistics. This means the estimation is more precise.*
+
+```{r}
+Salaries2 <- Salaries %>% mutate(y = ifelse(discipline == "A", 
+    1, 0))
+fit3 <- glm(y ~ rank + sex, data = Salaries2, family = binomial(link = "logit"))
+coeftest(fit3)
+exp(coef(fit3))
+
+library(lmtest)
+probs <- predict(fit3, type = "response")
+table(predict = as.numeric(probs > 0.5), truth = Salaries2$y) %>% 
+    addmargins
+
+(206 + 8)/397
+8/181
+206/216
+8/18
+
+library(plotROC)
+ROCplot <- ggplot(fit3) + geom_roc(aes(d = y, m = probs), n.cuts = 0)
+ROCplot
+calc_auc(ROCplot)
+
+Salaries2$logit <- predict(fit3, type = "link")
+Salaries2 %>% ggplot() + geom_density(aes(logit, color = discipline, 
+    fill = discipline), alpha = 0.4) + theme(legend.position = c(0.85, 
+    0.85)) + geom_vline(xintercept = 0) + xlab("predictor (logit)")
+
+```
+
+*Rank has a significant effect (p<0.05) on discipline, indicating that rank has a significant effect on whether or not a professor is classified as being in a theoretical department (A) or an applied department (B). When controlling for rank, the odds of a male being in a theoretical department is 0.87 times higher than a female. The odds of a Professor being in a theoretical department is higher than that of a Assistant Professor and an Associate Professor since the odds ratio is the highest. The AUC value is 0.55, indicating the probability that the model will score a randomly drawn positive sample higher than a randomly drawn negative sample. The accuracy is 0.539, the sensitivity is 0.044, the specificity is 0.954, and the precision is 0.444.*
+
+```{r}
+class_diag <- function(probs, truth) {
+    
+    if (is.numeric(truth) == FALSE & is.logical(truth) == FALSE) 
+        truth <- as.numeric(truth) - 1
+    
+    tab <- table(factor(probs > 0.5, levels = c("FALSE", "TRUE")), 
+        truth)
+    prediction <- ifelse(probs > 0.5, 1, 0)
+    acc = mean(truth == prediction)
+    sens = mean(prediction[truth == 1] == 1)
+    spec = mean(prediction[truth == 0] == 0)
+    ppv = mean(truth[prediction == 1] == 1)
+    f1 = 2 * (sens * ppv)/(sens + ppv)
+    
+    
+    ord <- order(probs, decreasing = TRUE)
+    probs <- probs[ord]
+    truth <- truth[ord]
+    
+    TPR = cumsum(truth)/max(1, sum(truth))
+    FPR = cumsum(!truth)/max(1, sum(!truth))
+    
+    dup <- c(probs[-1] >= probs[-length(probs)], FALSE)
+    TPR <- c(0, TPR[!dup], 1)
+    FPR <- c(0, FPR[!dup], 1)
+    
+    n <- length(TPR)
+    auc <- sum(((TPR[-1] + TPR[-n])/2) * (FPR[-1] - FPR[-n]))
+    
+    data.frame(acc, sens, spec, ppv, auc)
+}
+
+
+fit4 <- glm(y ~ rank + sex + salary + yrs.service + yrs.since.phd, 
+    data = Salaries2, family = binomial(link = "logit"))
+coeftest(fit4)
+exp(coef(fit4))
+
+probs1 <- predict(fit4, type = "response")
+table(predict = as.numeric(probs1 > 0.5), truth = Salaries2$y) %>% 
+    addmargins
+
+(164 + 95)/250
+95/181
+164/216
+95/147
+
+library(plotROC)
+ROCplot1 <- ggplot(fit4) + geom_roc(aes(d = y, m = probs1), n.cuts = 0)
+ROCplot1
+calc_auc(ROCplot1)
+
+
+set.seed(1234)
+k = 10
+
+data <- Salaries2 %>% sample_frac
+folds <- ntile(1:nrow(data), n = 10)
+
+diags <- NULL
+for (i in 1:k) {
+    train <- data[folds != i, ]
+    test <- data[folds == i, ]
+    truth <- test$y
+    
+    fit <- glm(y ~ (rank + sex + salary + yrs.service + yrs.since.phd), 
+        data = train, family = "binomial")
+    probs <- predict(fit, newdata = test, type = "response")
+    
+    diags <- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)
+
+
+library(glmnet)
+y <- as.matrix(Salaries2$sex)
+x <- model.matrix(y ~ ., data = Salaries2)[, -1]
+head(x)
+
+cv <- cv.glmnet(x, y, family = "binomial")
+lasso <- glmnet(x, y, family = "binomial", lambda = cv$lambda.1se)
+coef(lasso)
+
+{
+    plot(cv$glmnet.fit, "lambda", label = TRUE)
+    abline(v = log(cv$lambda.1se))
+    abline(v = log(cv$lambda.min), lty = 2)
+}
+
+
+set.seed(1234)
+k = 10
+
+data <- Salaries2 %>% sample_frac
+folds <- ntile(1:nrow(data), n = 10)
+
+diags <- NULL
+for (i in 1:k) {
+    train <- data[folds != i, ]
+    test <- data[folds == i, ]
+    truth <- test$y
+    
+    fit6 <- glm(y ~ sex, data = train, family = "binomial")
+    probs3 <- predict(fit6, newdata = test, type = "response")
+    
+    diags <- rbind(diags, class_diag(probs3, truth))
+}
+diags %>% summarize_all(mean)
+
+
+```
+
+Salary, years of serive, and years since receiving a PhD have a significant effect (p<0.05) on discipline, indicating that these variables have a significant effect on whether or not a professor is classified as being in a theoretical department (A) or an applied department (B). The AUC value is 0.73, indicating the probability that the model will score a randomly drawn positive sample higher than a randomly drawn negative sample. The accuracy is 1.036, the sensitivity is 0.525, the specificity is 0.759, and the precision is 0.646. After performing a 10-fold CV, the values decreased. The AUC value is 0.70, the accuracy is 0.637, the sensitivity is 0.489, the specificity is 0.753, and the precision is 0.616. From the LASSO performed, sex was the only value retained, so a 10-fold CV was run using only sex. Running only for sex gave an AUC 0.461.
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

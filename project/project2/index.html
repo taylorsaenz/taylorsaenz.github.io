@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Taylor Saenz" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>R Notebook</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">R Notebook</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>Taylor Saenz
+tas3672</p>
+<p><em>This dataset entitled ‘Salaries’ is named after the column that describes the salaries of various professors. The dataset gives details of each professors rank (ie. professor, assistant professor, and associate professor), as well as their sex. It also details how many years it has been since each professor received their PhD, as well as how many years they have been in service as a professor. There are 397 total observations, meaning there is data on 397 difference professors. This dataset seemed interesting because I was curious to see if sex had any effect on the salary a professor receives. It also interested me to view the importance of rank and years of service on the amount a professor gets paid.</em></p>
+<pre class="r"><code>library(carData)
+library(dplyr)
+
+write.csv(Salaries, &quot;~/Salaries.csv&quot;)
+data2 &lt;- read.csv(&quot;Salaries.csv&quot;)
+
+prof &lt;- manova(cbind(yrs.since.phd, yrs.service) ~ rank, data = Salaries)
+summary(prof)</code></pre>
+<pre><code>##            Df  Pillai approx F num Df den Df    Pr(&gt;F)    
+## rank        2 0.49855   65.414      4    788 &lt; 2.2e-16 ***
+## Residuals 394                                             
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(prof)</code></pre>
+<pre><code>##  Response yrs.since.phd :
+##              Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## rank          2  32390 16194.8  191.18 &lt; 2.2e-16 ***
+## Residuals   394  33376    84.7                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response yrs.service :
+##              Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## rank          2  24812   12406   115.9 &lt; 2.2e-16 ***
+## Residuals   394  42175     107                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>Salaries %&gt;% group_by(rank) %&gt;% summarize(mean(yrs.since.phd), 
+    mean(yrs.service))</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   rank      `mean(yrs.since.phd)` `mean(yrs.service)`
+##   &lt;fct&gt;                     &lt;dbl&gt;               &lt;dbl&gt;
+## 1 AsstProf                   5.10                2.37
+## 2 AssocProf                 15.5                12.0 
+## 3 Prof                      28.3                22.8</code></pre>
+<pre class="r"><code>pairwise.t.test(Salaries$yrs.since.phd, Salaries$rank, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  Salaries$yrs.since.phd and Salaries$rank 
+## 
+##           AsstProf AssocProf
+## AssocProf 3.6e-10  -        
+## Prof      &lt; 2e-16  &lt; 2e-16  
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(Salaries$yrs.service, Salaries$rank, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  Salaries$yrs.service and Salaries$rank 
+## 
+##           AsstProf AssocProf
+## AssocProf 2.0e-07  -        
+## Prof      &lt; 2e-16  3.2e-13  
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>0.05/9</code></pre>
+<pre><code>## [1] 0.005555556</code></pre>
+<pre class="r"><code>1 - 0.95^9</code></pre>
+<pre><code>## [1] 0.3697506</code></pre>
+<p><em>A MANOVA test was conducted in order to determine the effect of Professor rank on years since receiving a PhD and years of being in service as a professor. Examining bivariate density plot, there seems to be multivariate normality. Covariance matrices also showed relative homogeneity. No univariate or multivariate outliers were evident. The null hypothesis stating that years since receiving a PhD and years of being in service as a professor was the same across all ranks was rejected since a p value was less tahn 0.05. The ANOVA tests on the 2 variables were significant, and 1 MANOVA, 2 ANOVAs, and 6 t tests were used. The boneferonni adjusted rate that should be used is 0.0056 because there were 9 tests in total, and the overall type I error rate was 0.3697 The post hoc tests showed that all 3 ranks differed significantly from each other since p&lt;0.05.</em></p>
+<pre class="r"><code>female &lt;- c(129000, 137000, 74830, 151768, 74692, 122960, 97032, 
+    73500, 105000, 62884, 103994)
+male &lt;- c(89516, 139750, 147765, 78000, 117150, 102580, 155750, 
+    146500, 93418)
+
+newsalary &lt;- data.frame(sex = c(rep(&quot;Female&quot;, 11), rep(&quot;Male&quot;, 
+    9)), salary = c(female, male))
+head(newsalary)</code></pre>
+<pre><code>##      sex salary
+## 1 Female 129000
+## 2 Female 137000
+## 3 Female  74830
+## 4 Female 151768
+## 5 Female  74692
+## 6 Female 122960</code></pre>
+<pre class="r"><code>newsalary %&gt;% group_by(sex) %&gt;% summarize(means = mean(salary)) %&gt;% 
+    summarize(`mean_diff:` = diff(means))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean_diff:`
+##          &lt;dbl&gt;
+## 1       15967.</code></pre>
+<pre class="r"><code>original &lt;- vector()
+for (i in 1:5000) {
+    new &lt;- data.frame(salary = sample(newsalary$salary), sex = newsalary$sex)
+    original[i] &lt;- mean(new[new$sex == &quot;Female&quot;, ]$salary) - 
+        mean(new[new$sex == &quot;Male&quot;, ]$salary)
+}
+
+{
+    hist(original)
+    abline(v = c(-18.258, 18.258), col = &quot;red&quot;)
+}</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>mean(original &gt; 15967.46 | original &lt; -15967.46)</code></pre>
+<pre><code>## [1] 0.2414</code></pre>
+<pre class="r"><code>new %&gt;% filter(sex == &quot;female&quot;)</code></pre>
+<pre><code>## [1] salary sex   
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<p><em>A randomization test was performed in order to view the mean difference in salary between males and females. The null hypothesis states that mean salary is the same for males vs females, while the alternative hypothesis states that mean salary is different for males vs females. The mean difference is 15967.46, indicating that on average, males earn 15967.46 higher salary than females do. The p value, however, is 0.2412 meaning that the null hypothesis cannot be rejected. There is a 24% chance that in the real world, you will get data that is as extreme as a difference between groups of 15967.46 if the null hypothesis were to be true. For this reason, it can be said the the mean salary for a professor is the same for males and females.</em></p>
+<pre class="r"><code>library(lmtest)
+library(sandwich)
+library(tidyverse)
+library(dplyr)
+
+Salaries$yrs.since.phd_c &lt;- Salaries$yrs.since.phd - mean(Salaries$yrs.since.phd, 
+    na.rm = T)
+Salaries$yrs.service_c &lt;- Salaries$yrs.service - mean(Salaries$yrs.service, 
+    na.rm = T)
+fit1 &lt;- lm(salary ~ yrs.since.phd_c * yrs.service_c, data = Salaries)
+summary(fit1)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = salary ~ yrs.since.phd_c * yrs.service_c, data = Salaries)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -63823 -17292  -2538  13158 107001 
+## 
+## Coefficients:
+##                                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                   123533.470   1698.633  72.725  &lt; 2e-16 ***
+## yrs.since.phd_c                 1056.086    242.975   4.346 1.76e-05 ***
+## yrs.service_c                    250.528    254.880   0.983    0.326    
+## yrs.since.phd_c:yrs.service_c    -64.617      7.487  -8.630  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 25120 on 393 degrees of freedom
+## Multiple R-squared:  0.3177, Adjusted R-squared:  0.3125 
+## F-statistic: 60.99 on 3 and 393 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>coeftest(fit1)</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                  Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)                   123533.4702   1698.6332 72.7252 &lt; 2.2e-16 ***
+## yrs.since.phd_c                 1056.0865    242.9752  4.3465 1.764e-05 ***
+## yrs.service_c                    250.5284    254.8801  0.9829    0.3262    
+## yrs.since.phd_c:yrs.service_c    -64.6169      7.4871 -8.6304 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>Salaries %&gt;% ggplot(aes(yrs.service_c, salary)) + geom_point() + 
+    geom_smooth(method = &quot;lm&quot;, se = F)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bptest(fit1)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit1
+## BP = 44.85, df = 3, p-value = 9.957e-10</code></pre>
+<pre class="r"><code>summary(fit1)$coef[, 1:2]</code></pre>
+<pre><code>##                                   Estimate  Std. Error
+## (Intercept)                   123533.47023 1698.633174
+## yrs.since.phd_c                 1056.08650  242.975151
+## yrs.service_c                    250.52836  254.880140
+## yrs.since.phd_c:yrs.service_c    -64.61694    7.487103</code></pre>
+<pre class="r"><code>coeftest(fit1, vcov = vcovHC(fit1))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                 Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)                   123533.470   1974.967 62.5496 &lt; 2.2e-16 ***
+## yrs.since.phd_c                 1056.086    294.532  3.5856 0.0003786 ***
+## yrs.service_c                    250.528    310.707  0.8063 0.4205478    
+## yrs.since.phd_c:yrs.service_c    -64.617     11.010 -5.8687 9.343e-09 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p><em>The null hypothesis states that years since receiving a PhD and years of service as a professor will not explain variation in salary. Years since receiving a PhD and the interaction between this variable and years of service both showed to have a p value &lt;0.05, indicating that the null hypothesis needs to be rejected. Years since receiving a PhD does explain variation in salary. After accounting for robust standard errors, the results proved to be the same as before. Years since receiving a PhD and the interaction between this variable and years of service both showed to have a p value &lt;0.05, indicating that the null hypothesis needs to be rejected. Looking at the graph created, assumptions of a linear regression can be assessed. It appears that none of the assumptions were met. There is no linear interaction bewtween predictor and response variables, no equal variance of points along the regression line, and no normally distributed residules, according the Breuch-Pagan test.</em></p>
+<pre class="r"><code>fit2 &lt;- lm(salary ~ yrs.since.phd_c * yrs.service_c, data = Salaries)
+summary(fit2)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = salary ~ yrs.since.phd_c * yrs.service_c, data = Salaries)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -63823 -17292  -2538  13158 107001 
+## 
+## Coefficients:
+##                                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                   123533.470   1698.633  72.725  &lt; 2e-16 ***
+## yrs.since.phd_c                 1056.086    242.975   4.346 1.76e-05 ***
+## yrs.service_c                    250.528    254.880   0.983    0.326    
+## yrs.since.phd_c:yrs.service_c    -64.617      7.487  -8.630  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 25120 on 393 degrees of freedom
+## Multiple R-squared:  0.3177, Adjusted R-squared:  0.3125 
+## F-statistic: 60.99 on 3 and 393 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>coeftest(fit2)</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                  Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)                   123533.4702   1698.6332 72.7252 &lt; 2.2e-16 ***
+## yrs.since.phd_c                 1056.0865    242.9752  4.3465 1.764e-05 ***
+## yrs.service_c                    250.5284    254.8801  0.9829    0.3262    
+## yrs.since.phd_c:yrs.service_c    -64.6169      7.4871 -8.6304 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>boot_dat &lt;- sample_frac(Salaries, replace = T)
+samp &lt;- replicate(5000, {
+    boot_dat &lt;- sample_frac(Salaries, replace = T)
+    fit2 &lt;- lm(salary ~ yrs.since.phd_c * yrs.service_c, data = boot_dat)
+    coef(fit2)
+})
+samp %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) yrs.since.phd_c yrs.service_c yrs.since.phd_c:yrs.service_c
+## 1    1943.829        287.1158       305.512                      10.46944</code></pre>
+<p><em>After resampling the observations, the SEs stayed increased from the original SEs but decreased from the robust standard errors. Accounting for bootstap standard errors, the SEs decreased from the robust SEs which indicates that there is less variation using bootstrap using bootstrap statistics. This means the estimation is more precise.</em></p>
+<pre class="r"><code>Salaries2 &lt;- Salaries %&gt;% mutate(y = ifelse(discipline == &quot;A&quot;, 
+    1, 0))
+fit3 &lt;- glm(y ~ rank + sex, data = Salaries2, family = binomial(link = &quot;logit&quot;))
+coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##               Estimate Std. Error z value Pr(&gt;|z|)  
+## (Intercept)   -0.47057    0.38341 -1.2273  0.21970  
+## rankAssocProf  0.20486    0.36026  0.5686  0.56960  
+## rankProf       0.56645    0.28501  1.9875  0.04687 *
+## sexMale       -0.13509    0.34473 -0.3919  0.69515  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coef(fit3))</code></pre>
+<pre><code>##   (Intercept) rankAssocProf      rankProf       sexMale 
+##     0.6246443     1.2273527     1.7620001     0.8736344</code></pre>
+<pre class="r"><code>library(lmtest)
+probs &lt;- predict(fit3, type = &quot;response&quot;)
+table(predict = as.numeric(probs &gt; 0.5), truth = Salaries2$y) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict   0   1 Sum
+##     0   206 173 379
+##     1    10   8  18
+##     Sum 216 181 397</code></pre>
+<pre class="r"><code>(206 + 8)/397</code></pre>
+<pre><code>## [1] 0.5390428</code></pre>
+<pre class="r"><code>8/181</code></pre>
+<pre><code>## [1] 0.0441989</code></pre>
+<pre class="r"><code>206/216</code></pre>
+<pre><code>## [1] 0.9537037</code></pre>
+<pre class="r"><code>8/18</code></pre>
+<pre><code>## [1] 0.4444444</code></pre>
+<pre class="r"><code>library(plotROC)
+ROCplot &lt;- ggplot(fit3) + geom_roc(aes(d = y, m = probs), n.cuts = 0)
+ROCplot</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.5507852</code></pre>
+<pre class="r"><code>Salaries2$logit &lt;- predict(fit3, type = &quot;link&quot;)
+Salaries2 %&gt;% ggplot() + geom_density(aes(logit, color = discipline, 
+    fill = discipline), alpha = 0.4) + theme(legend.position = c(0.85, 
+    0.85)) + geom_vline(xintercept = 0) + xlab(&quot;predictor (logit)&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><em>Rank has a significant effect (p&lt;0.05) on discipline, indicating that rank has a significant effect on whether or not a professor is classified as being in a theoretical department (A) or an applied department (B). When controlling for rank, the odds of a male being in a theoretical department is 0.87 times higher than a female. The odds of a Professor being in a theoretical department is higher than that of a Assistant Professor and an Associate Professor since the odds ratio is the highest. The AUC value is 0.55, indicating the probability that the model will score a randomly drawn positive sample higher than a randomly drawn negative sample. The accuracy is 0.539, the sensitivity is 0.044, the specificity is 0.954, and the precision is 0.444.</em></p>
+<pre class="r"><code>class_diag &lt;- function(probs, truth) {
+    
+    if (is.numeric(truth) == FALSE &amp; is.logical(truth) == FALSE) 
+        truth &lt;- as.numeric(truth) - 1
+    
+    tab &lt;- table(factor(probs &gt; 0.5, levels = c(&quot;FALSE&quot;, &quot;TRUE&quot;)), 
+        truth)
+    prediction &lt;- ifelse(probs &gt; 0.5, 1, 0)
+    acc = mean(truth == prediction)
+    sens = mean(prediction[truth == 1] == 1)
+    spec = mean(prediction[truth == 0] == 0)
+    ppv = mean(truth[prediction == 1] == 1)
+    f1 = 2 * (sens * ppv)/(sens + ppv)
+    
+    
+    ord &lt;- order(probs, decreasing = TRUE)
+    probs &lt;- probs[ord]
+    truth &lt;- truth[ord]
+    
+    TPR = cumsum(truth)/max(1, sum(truth))
+    FPR = cumsum(!truth)/max(1, sum(!truth))
+    
+    dup &lt;- c(probs[-1] &gt;= probs[-length(probs)], FALSE)
+    TPR &lt;- c(0, TPR[!dup], 1)
+    FPR &lt;- c(0, FPR[!dup], 1)
+    
+    n &lt;- length(TPR)
+    auc &lt;- sum(((TPR[-1] + TPR[-n])/2) * (FPR[-1] - FPR[-n]))
+    
+    data.frame(acc, sens, spec, ppv, auc)
+}
+
+
+fit4 &lt;- glm(y ~ rank + sex + salary + yrs.service + yrs.since.phd, 
+    data = Salaries2, family = binomial(link = &quot;logit&quot;))
+coeftest(fit4)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                  Estimate  Std. Error z value  Pr(&gt;|z|)    
+## (Intercept)    1.4560e+00  5.5822e-01  2.6082  0.009101 ** 
+## rankAssocProf  6.1687e-02  3.9761e-01  0.1551  0.876707    
+## rankProf       7.1270e-01  4.5604e-01  1.5628  0.118103    
+## sexMale       -6.1180e-02  3.6194e-01 -0.1690  0.865771    
+## salary        -2.9394e-05  5.2550e-06 -5.5935 2.225e-08 ***
+## yrs.service   -4.6989e-02  2.0646e-02 -2.2760  0.022847 *  
+## yrs.since.phd  9.4001e-02  2.3484e-02  4.0027 6.262e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coef(fit4))</code></pre>
+<pre><code>##   (Intercept) rankAssocProf      rankProf       sexMale        salary 
+##     4.2886449     1.0636291     2.0394888     0.9406540     0.9999706 
+##   yrs.service yrs.since.phd 
+##     0.9540980     1.0985606</code></pre>
+<pre class="r"><code>probs1 &lt;- predict(fit4, type = &quot;response&quot;)
+table(predict = as.numeric(probs1 &gt; 0.5), truth = Salaries2$y) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict   0   1 Sum
+##     0   164  86 250
+##     1    52  95 147
+##     Sum 216 181 397</code></pre>
+<pre class="r"><code>(164 + 95)/250</code></pre>
+<pre><code>## [1] 1.036</code></pre>
+<pre class="r"><code>95/181</code></pre>
+<pre><code>## [1] 0.5248619</code></pre>
+<pre class="r"><code>164/216</code></pre>
+<pre><code>## [1] 0.7592593</code></pre>
+<pre class="r"><code>95/147</code></pre>
+<pre><code>## [1] 0.6462585</code></pre>
+<pre class="r"><code>library(plotROC)
+ROCplot1 &lt;- ggplot(fit4) + geom_roc(aes(d = y, m = probs1), n.cuts = 0)
+ROCplot1</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot1)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.7341416</code></pre>
+<pre class="r"><code>set.seed(1234)
+k = 10
+
+data &lt;- Salaries2 %&gt;% sample_frac
+folds &lt;- ntile(1:nrow(data), n = 10)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    truth &lt;- test$y
+    
+    fit &lt;- glm(y ~ (rank + sex + salary + yrs.service + yrs.since.phd), 
+        data = train, family = &quot;binomial&quot;)
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.6373718 0.4888593 0.7525703 0.6158126 0.7018772</code></pre>
+<pre class="r"><code>library(glmnet)
+y &lt;- as.matrix(Salaries2$sex)
+x &lt;- model.matrix(y ~ ., data = Salaries2)[, -1]
+head(x)</code></pre>
+<pre><code>##   rankAssocProf rankProf disciplineB yrs.since.phd yrs.service sexMale salary
+## 1             0        1           1            19          18       1 139750
+## 2             0        1           1            20          16       1 173200
+## 3             0        0           1             4           3       1  79750
+## 4             0        1           1            45          39       1 115000
+## 5             0        1           1            40          41       1 141500
+## 6             1        0           1             6           6       1  97000
+##   yrs.since.phd_c yrs.service_c       logit
+## 1       -3.314861     0.3853904 -0.03921656
+## 2       -2.314861    -1.6146096 -0.03921656
+## 3      -18.314861   -14.6146096 -0.60566615
+## 4       22.685139    21.3853904 -0.03921656
+## 5       17.685139    23.3853904 -0.03921656
+## 6      -16.314861   -11.6146096 -0.40080660</code></pre>
+<pre class="r"><code>cv &lt;- cv.glmnet(x, y, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(x, y, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 11 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                        s0
+## (Intercept)     -6.421172
+## rankAssocProf    .       
+## rankProf         .       
+## disciplineB      .       
+## yrs.since.phd    .       
+## yrs.service      .       
+## sexMale         15.060740
+## salary           .       
+## yrs.since.phd_c  .       
+## yrs.service_c    .       
+## logit            .</code></pre>
+<pre class="r"><code>{
+    plot(cv$glmnet.fit, &quot;lambda&quot;, label = TRUE)
+    abline(v = log(cv$lambda.1se))
+    abline(v = log(cv$lambda.min), lty = 2)
+}</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>set.seed(1234)
+k = 10
+
+data &lt;- Salaries2 %&gt;% sample_frac
+folds &lt;- ntile(1:nrow(data), n = 10)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    truth &lt;- test$y
+    
+    fit6 &lt;- glm(y ~ sex, data = train, family = &quot;binomial&quot;)
+    probs3 &lt;- predict(fit6, newdata = test, type = &quot;response&quot;)
+    
+    diags &lt;- rbind(diags, class_diag(probs3, truth))
+}
+diags %&gt;% summarize_all(mean)</code></pre>
+<pre><code>##         acc sens spec ppv       auc
+## 1 0.5333974    0 0.98 NaN 0.4612468</code></pre>
+<p>Salary, years of serive, and years since receiving a PhD have a significant effect (p&lt;0.05) on discipline, indicating that these variables have a significant effect on whether or not a professor is classified as being in a theoretical department (A) or an applied department (B). The AUC value is 0.73, indicating the probability that the model will score a randomly drawn positive sample higher than a randomly drawn negative sample. The accuracy is 1.036, the sensitivity is 0.525, the specificity is 0.759, and the precision is 0.646. After performing a 10-fold CV, the values decreased. The AUC value is 0.70, the accuracy is 0.637, the sensitivity is 0.489, the specificity is 0.753, and the precision is 0.616. From the LASSO performed, sex was the only value retained, so a 10-fold CV was run using only sex. Running only for sex gave an AUC 0.461.</p>
+<p>Add a new chunk by clicking the <em>Insert Chunk</em> button on the toolbar or by pressing <em>Ctrl+Alt+I</em>.</p>
+<p>When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the <em>Preview</em> button or press <em>Ctrl+Shift+K</em> to preview the HTML file).</p>
+<p>The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.</p>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

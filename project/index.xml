@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Chris Turner</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Chris Turner</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Project 1</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>The dataset crime.us was found first through R datasets, and it became extremely interesting to me because I have always been interested in crime and crime rates. This dataset contains data from each state in the US and details their total violent crimes as well as the number of individual crimes, such as rape, murder, burglary, robbery, and assualt. I thought it would be interesting to compare these statistics to average income by state.</description>
+    </item>
+    
+    <item>
+      <title>R Notebook</title>
+      <link>/project/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Taylor Saenz tas3672
+This dataset entitled ‘Salaries’ is named after the column that describes the salaries of various professors. The dataset gives details of each professors rank (ie. professor, assistant professor, and associate professor), as well as their sex. It also details how many years it has been since each professor received their PhD, as well as how many years they have been in service as a professor. There are 397 total observations, meaning there is data on 397 difference professors.</description>
+    </item>
+    
+  </channel>
+</rss>
