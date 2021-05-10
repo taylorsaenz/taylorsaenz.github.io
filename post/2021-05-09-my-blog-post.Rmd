@@ -8,4 +8,15 @@ tags: []
 description: ''
 ---
 
-![](/post/2021-05-09-my-blog-post_files/mountains.jpg)
+![](/img/IMG_1476.jpg)
+
+```{R}
+#R code chunk
+library(reticulate)
+hi<-"I love"
+```
+
+```{python}
+hi="mountains"
+print(r.hi,hi)
+```
